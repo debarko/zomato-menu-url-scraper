@@ -197,7 +197,8 @@ app.get("/reviews", function(req, res){
 app.get("/about", function(req, res) {
   var resturant = encodeURIComponent(req.query.name),
     location = encodeURIComponent(req.query.location),
-    url = "http://localhost:"+port+"/getFirst?resturant="+resturant+"&location="+location;
+    url = "http://localhost:"+port+"/getFirst?resturant="+resturant+"&location="+location,
+    objectReturn = {};
   
   request(url, function(error, response, html){
     console.log("Step 1: " + html);
@@ -205,10 +206,14 @@ app.get("/about", function(req, res) {
     request(url2, function(error2, response2, html2) {
       console.log("Step 2: " + html2);
       html2 = JSON.parse(html2);
+      objectReturn.res_id = hmtl2.res_id;
+      objectReturn.name = hmtl2.name;
+      objectReturn.address = hmtl2.address;
       var url3 = "http://localhost:"+port+"/reviews?res_id="+html2.res_id+"&url="+html;
       request(url3, function(error3, response3, html3) {
         console.log("Step 3: " + html3);
-        res.send(JSON.parse(html3));
+        objectReturn.reviews = JSON.parse(html3);
+        res.send(objectReturn);
       });
     });
   });
