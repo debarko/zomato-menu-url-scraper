@@ -141,6 +141,10 @@ app.get('/scrape', function(req, res){
         } else {
           json.menuImages.push(menuItem);
           i++;
+          if (i>5) {
+            res.send(json);
+            return;
+          }
           menuImager();
         }
       });
@@ -151,8 +155,9 @@ app.get('/scrape', function(req, res){
 })
 
 app.get("/reviews", function(req, res){
-  var curlCommand = "curl 'https://www.zomato.com/php/filter_reviews.php' -H 'Pragma: no-cache' -H 'X-NewRelic-ID: VgcDUF5SGwEDV1RWAgg=' -H 'Origin: https://www.zomato.com' -H 'Accept-Encoding: gzip,deflate,sdch' -H 'Accept-Language: en-US,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: */*' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie:" + globalCookie1 + "' -H 'Connection: keep-alive' -H 'Referer: https://www.zomato.com/bangalore/high-ultra-lounge-malleshwaram/reviews' --data "+
-  "'res_id=57709&sort=reviews-dd&limit=50' --compressed"
+  var the_res_id = req.query.res_id,
+    curlCommand = "curl 'https://www.zomato.com/php/filter_reviews.php' -H 'Pragma: no-cache' -H 'X-NewRelic-ID: VgcDUF5SGwEDV1RWAgg=' -H 'Origin: https://www.zomato.com' -H 'Accept-Encoding: gzip,deflate,sdch' -H 'Accept-Language: en-US,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: */*' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie:" + globalCookie1 + "' -H 'Connection: keep-alive' -H 'Referer: https://www.zomato.com/bangalore/high-ultra-lounge-malleshwaram/reviews' --data "+
+      "'res_id=" + the_res_id + "&sort=reviews-dd&limit=50' --compressed"
 
   console.log(curlCommand);
   exec(curlCommand,
