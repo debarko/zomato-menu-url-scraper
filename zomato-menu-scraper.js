@@ -4,6 +4,9 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
 var https = require('https');
+var exec = require('exec');
+var globalCookie1 = "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=9d021699261ed227328dfa064ba52ff0; orange=7688750; GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411218831:X=1411222431; G_AUTHUSER_S3=0; dpr=1; __utma=141625785.1004035067.1411205798.1411220954.1411223772.5; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1";
+var globalCookie2 = "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=9d021699261ed227328dfa064ba52ff0; orange=7688750; GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411236227:X=1411239827; G_AUTHUSER_S3=0; LEL_JS=true; searchurl=http%3A%2F%2Fwww.zomato.com%2Fbangalore%2Frestaurants%2Fchinese; __utma=141625785.1004035067.1411205798.1411223772.1411236221.6; __utmb=141625785.16.9.1411238003450; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); dpr=1; fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1";
 
 app.get('/getFirst', function(req, res) {
   var resturant = encodeURIComponent(req.query.resturant),
@@ -30,7 +33,7 @@ app.get('/getFirst', function(req, res) {
     host: host,
     path: x,
     headers: {
-      Cookie: "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=9d021699261ed227328dfa064ba52ff0; orange=7688750; GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411218831:X=1411222431; G_AUTHUSER_S3=0; dpr=1; __utma=141625785.1004035067.1411205798.1411220954.1411223772.5; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1"
+      Cookie: globalCookie
     }
   }, function (response) {
     console.log("Received the data" + response);
@@ -40,20 +43,6 @@ app.get('/getFirst', function(req, res) {
     var $I = cheerio.load(response);
     res.send($I('.item').first().attr("href"));
   });
-
-  // request(host+x, function(errorI, responseI, htmlI) {
-  //   if (errorI) {
-  //     console.log("Error happened while fetching resturants: " + errorI);
-  //     return;
-  //   }
-  //   console.log("Received the data");
-  //   console.log(htmlI);
-  //   res.send(htmlI.split("</a>")[0]);
-  //   // 
-  //   // console.log($I("a"));
-  //   // console.log($I('body').children().first().attr("href"));
-  //   // 
-  // });
 });
 
 app.get('/scrape', function(req, res){
@@ -68,9 +57,10 @@ app.get('/scrape', function(req, res){
       console.log("Couldn't find the menu because of error: " + error);
       return;
     }
+    var res_id = html.match(/RES_ID = .[0-9]+./)[0].split("\"")[1];
     var $ = cheerio.load(html);
     var checkerName = 0, checkerAddress = 0;
-    var json = { name : "", address : "", menuImages: []};
+    var json = { name : "", address : "", menuImages: [], res_id: res_id};
 
     console.log("Trying to fetch resturant name");
     $('.res-main a').filter(function(){
@@ -159,6 +149,32 @@ app.get('/scrape', function(req, res){
     menuImager();
   });
 })
+
+app.get("/reviews", function(req, res){
+  var curlCommand = "curl 'https://www.zomato.com/php/filter_reviews.php' -H 'Pragma: no-cache' -H 'X-NewRelic-ID: VgcDUF5SGwEDV1RWAgg=' -H 'Origin: https://www.zomato.com' -H 'Accept-Encoding: gzip,deflate,sdch' -H 'Accept-Language: en-US,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: */*' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie:" + globalCookie1 + "' -H 'Connection: keep-alive' -H 'Referer: https://www.zomato.com/bangalore/high-ultra-lounge-malleshwaram/reviews' --data "+
+  "'res_id=57709&sort=reviews-dd&limit=50' --compressed"
+
+  console.log(curlCommand);
+  exec(curlCommand,
+    function (error, stdout, stderr) {
+      var json = [];
+      console.log("Got the reviews");
+      stdout = JSON.parse(stdout);
+      var $I = cheerio.load(stdout.html);
+      var dataDump = $I("div[itemprop=description]").text();
+      dataDump = dataDump.replace(/Rated/g, "");
+      dataDump = dataDump.replace(/rated/g, "");
+      dataDump = dataDump.replace(/  /g, "");
+      var xArr = dataDump.split("\n");
+      for(var j=0;j<xArr.length;j++) {
+        if (xArr[j] === "" || xArr[j] === " " || xArr[j] === "  ") {
+          continue;
+        }
+        json.push(xArr[j]);
+      }
+      res.send(json);
+  });
+});
 
 app.listen('8081')
 console.log('Magic happens on port 8081');
