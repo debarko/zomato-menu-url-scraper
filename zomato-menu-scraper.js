@@ -206,9 +206,9 @@ app.get("/about", function(req, res) {
     request(url2, function(error2, response2, html2) {
       console.log("Step 2: " + html2);
       html2 = JSON.parse(html2);
-      objectReturn.res_id = hmtl2.res_id;
-      objectReturn.name = hmtl2.name;
-      objectReturn.address = hmtl2.address;
+      objectReturn.res_id = html2.res_id;
+      objectReturn.name = html2.name;
+      objectReturn.address = html2.address;
       var url3 = "http://localhost:"+port+"/reviews?res_id="+html2.res_id+"&url="+html;
       request(url3, function(error3, response3, html3) {
         console.log("Step 3: " + html3);
