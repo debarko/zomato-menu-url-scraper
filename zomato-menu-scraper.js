@@ -47,6 +47,7 @@ app.get('/getFirst', function(req, res) {
 
 app.get('/scrape', function(req, res){
   var the_name = req.query.resturant,
+    hide_images = req.query.hide_images,
     the_name, pageNumber = 1;
 
   var url = "https://www.zomato.com" + the_name + "/menu?page=" + pageNumber + "#menutop";
@@ -95,62 +96,72 @@ app.get('/scrape', function(req, res){
       }
     });
 
-    var parseMenu = function (htmlI, i) {
-      var $I = cheerio.load(htmlI);
-
-      if (!i) {
-        i = 1;
-      }
-      return $I('#menu-image img').attr("src");
-      $I('#menu-image img').filter(function(){
-        console.log("Parsing the menu");
-        var data = $I(this), imgUrl;
-        imgUrl = data.attr("src");
-        if (imgUrl) {
-          console.log(i, imgUrl);
-          return imgUrl;
-        } else {
-          return false;
-        }
-      });
-    };
-
-    var firstMenuItem = parseMenu(html);
-    if (!firstMenuItem) {
-      console.log("Sending the response back in the beginning");
-      res.send(json);
-    } else {
-      json.menuImages.push(firstMenuItem);
+    if (hide_images) {
+      setTimeout(function () {
+        console.log("Sending the response because of hide_images");
+        res.send(json);
+      }, 50);
+      return;
     }
 
-    var i = 2;
-    console.log("Trying to fetch resturant menu");
-    var menuImager = function() {
-      var urlI = "https://www.zomato.com" + the_name + "/menu?page=" + i + "#menutop";
+    if (!hide_images) {
+      var parseMenu = function (htmlI, i) {
+        var $I = cheerio.load(htmlI);
 
-      console.log("Menu " + i + " " + urlI);
-      request(urlI, function(errorI, responseI, htmlI) {
-        if (errorI) {
-          console.log("Error happened while fetching menus: " + errorI);
-          return;
+        if (!i) {
+          i = 1;
         }
-        var menuItem = parseMenu(htmlI, i);
-        if (!menuItem) {
-          console.log("Sending the response back");
-          res.send(json);
-        } else {
-          json.menuImages.push(menuItem);
-          i++;
-          if (i>5) {
-            res.send(json);
+        return $I('#menu-image img').attr("src");
+        $I('#menu-image img').filter(function(){
+          console.log("Parsing the menu");
+          var data = $I(this), imgUrl;
+          imgUrl = data.attr("src");
+          if (imgUrl) {
+            console.log(i, imgUrl);
+            return imgUrl;
+          } else {
+            return false;
+          }
+        });
+      };
+
+      var firstMenuItem = parseMenu(html);
+      if (!firstMenuItem) {
+        console.log("Sending the response back in the beginning");
+        res.send(json);
+      } else {
+        json.menuImages.push(firstMenuItem);
+      }
+
+      var i = 2;
+      console.log("Trying to fetch resturant menu");
+      var menuImager = function() {
+        var urlI = "https://www.zomato.com" + the_name + "/menu?page=" + i + "#menutop";
+
+        console.log("Menu " + i + " " + urlI);
+        request(urlI, function(errorI, responseI, htmlI) {
+          if (errorI) {
+            console.log("Error happened while fetching menus: " + errorI);
             return;
           }
-          menuImager();
-        }
-      });
-    };
+          var menuItem = parseMenu(htmlI, i);
+          if (!menuItem) {
+            console.log("Sending the response back");
+            res.send(json);
+          } else {
+            json.menuImages.push(menuItem);
+            i++;
+            if (i>5) {
+              res.send(json);
+              return;
+            }
+            menuImager();
+          }
+        });
+      };
 
-    menuImager();
+      menuImager();
+    }
   });
 })
 
