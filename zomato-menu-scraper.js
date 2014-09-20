@@ -6,7 +6,8 @@ var app     = express();
 var https = require('https');
 var exec = require('exec');
 var globalCookie1 = "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=9d021699261ed227328dfa064ba52ff0; orange=7688750; GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411218831:X=1411222431; G_AUTHUSER_S3=0; dpr=1; __utma=141625785.1004035067.1411205798.1411220954.1411223772.5; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1";
-var globalCookie2 = "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=9d021699261ed227328dfa064ba52ff0; orange=7688750; GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411236227:X=1411239827; G_AUTHUSER_S3=0; LEL_JS=true; searchurl=http%3A%2F%2Fwww.zomato.com%2Fbangalore%2Frestaurants%2Fchinese; __utma=141625785.1004035067.1411205798.1411223772.1411236221.6; __utmb=141625785.16.9.1411238003450; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); dpr=1; fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1";
+var globalCookie2 = "PHPSESSID=19o5reaf0c09kn898no98hn2i0; ueg=3; squeeze=6149c444ab05cd7579139a5cc203a093; orange=2797656; dpr=1; __utma=141625785.1004035067.1411205798.1411245289.1411251972.8; __utmb=141625785.3.10.1411251972; __utmc=141625785; __utmz=141625785.1411205798.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); GCSCE_442739719837_S3=C=442739719837.apps.googleusercontent.com:S=7e74c3fe301f3c8f396ee14084d41bab731976c3..aa9c:I=1411251976:X=1411255576; G_AUTHUSER_S3=0; fbcity=4; zl=en; fbtrack=a4be40b9e3690d6761c703f0657533c1";
+var port = 8081;
 
 app.get('/getFirst', function(req, res) {
   var resturant = encodeURIComponent(req.query.resturant),
@@ -33,7 +34,7 @@ app.get('/getFirst', function(req, res) {
     host: host,
     path: x,
     headers: {
-      Cookie: globalCookie
+      Cookie: globalCookie1
     }
   }, function (response) {
     console.log("Received the data" + response);
@@ -167,7 +168,8 @@ app.get('/scrape', function(req, res){
 
 app.get("/reviews", function(req, res){
   var the_res_id = req.query.res_id,
-    curlCommand = "curl 'https://www.zomato.com/php/filter_reviews.php' -H 'Pragma: no-cache' -H 'X-NewRelic-ID: VgcDUF5SGwEDV1RWAgg=' -H 'Origin: https://www.zomato.com' -H 'Accept-Encoding: gzip,deflate,sdch' -H 'Accept-Language: en-US,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: */*' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie:" + globalCookie1 + "' -H 'Connection: keep-alive' -H 'Referer: https://www.zomato.com/bangalore/high-ultra-lounge-malleshwaram/reviews' --data "+
+    urlBuilt = req.query.url,
+    curlCommand = "curl 'https://www.zomato.com/php/filter_reviews.php' -H 'Pragma: no-cache' -H 'X-NewRelic-ID: VgcDUF5SGwEDV1RWAgg=' -H 'Origin: https://www.zomato.com' -H 'Accept-Encoding: gzip,deflate,sdch' -H 'Accept-Language: en-US,en;q=0.8' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Accept: */*' -H 'Cache-Control: no-cache' -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: " + globalCookie2 + "' -H 'Connection: keep-alive' -H 'Referer: https://www.zomato.com"+ urlBuilt +"/reviews' --data "+
       "'res_id=" + the_res_id + "&sort=reviews-dd&limit=50' --compressed"
 
   console.log(curlCommand);
@@ -189,6 +191,26 @@ app.get("/reviews", function(req, res){
         json.push(xArr[j]);
       }
       res.send(json);
+  });
+});
+
+app.get("/about", function(req, res) {
+  var resturant = encodeURIComponent(req.query.name),
+    location = encodeURIComponent(req.query.location),
+    url = "http://localhost:"+port+"/getFirst?resturant="+resturant+"&location="+location;
+  
+  request(url, function(error, response, html){
+    console.log("Step 1: " + html);
+    var url2 = "http://localhost:"+port+"/scrape?resturant="+html+"&hide_images=true";
+    request(url2, function(error2, response2, html2) {
+      console.log("Step 2: " + html2);
+      html2 = JSON.parse(html2);
+      var url3 = "http://localhost:"+port+"/reviews?res_id="+html2.res_id+"&url="+html;
+      request(url3, function(error3, response3, html3) {
+        console.log("Step 3: " + html3);
+        res.send(JSON.parse(html3));
+      });
+    });
   });
 });
 
