@@ -189,6 +189,7 @@ app.get("/reviews", function(req, res){
       dataDump = dataDump.replace(/Rated/g, "");
       dataDump = dataDump.replace(/rated/g, "");
       dataDump = dataDump.replace(/  /g, "");
+      dataDump = dataDump.replace(/"/g, "");
       var xArr = dataDump.split("\n");
       for(var j=0;j<xArr.length;j++) {
         if (xArr[j] === "" || xArr[j] === " " || xArr[j] === "  ") {
