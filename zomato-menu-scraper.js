@@ -219,6 +219,27 @@ app.get("/about", function(req, res) {
   });
 });
 
+app.get("/menuphotos", function(req, res) {
+  var resturant = encodeURIComponent(req.query.name),
+    location = encodeURIComponent(req.query.location),
+    url = "http://localhost:"+port+"/getFirst?resturant="+resturant+"&location="+location,
+    objectReturn = {};
+  
+  request(url, function(error, response, html){
+    console.log("Step 1: " + html);
+    var url2 = "http://localhost:"+port+"/scrape?resturant="+html;
+    request(url2, function(error2, response2, html2) {
+      console.log("Step 2: " + html2);
+      html2 = JSON.parse(html2);
+      objectReturn.res_id = html2.res_id;
+      objectReturn.name = html2.name;
+      objectReturn.address = html2.address;
+      objectReturn.menuImages = html2.menuImages;
+      res.send(objectReturn);
+    });
+  });
+});
+
 app.listen('8081')
 console.log('Magic happens on port 8081');
 exports = module.exports = app;
