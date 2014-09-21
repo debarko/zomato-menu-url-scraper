@@ -19,6 +19,7 @@ app.get('/getFirst', function(req, res) {
   if (resturant[0]=="K" && resturant[resturant.length - 1]=="K") {
     res.send("/bangalore/k-k-itc-gardenia-residency-road");
     console.log("Sending KK Fix");
+    return;
   } else {
     console.log(resturant);
   }
