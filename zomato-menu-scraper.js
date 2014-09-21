@@ -13,7 +13,7 @@ app.get('/getFirst', function(req, res) {
   var resturant = encodeURIComponent(req.query.resturant),
     location = encodeURIComponent(req.query.location),
     host = "www.zomato.com",
-    x = "/php/liveSuggest.php?type=json&q=" + resturant + "%20" + location;
+    x = "/php/liveSuggest.php?type=json&q=" + resturant + "%2C%20" + location.split(",")[0];
 
   console.log("Querying for the data " + host + x);
 
