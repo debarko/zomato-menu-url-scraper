@@ -16,7 +16,7 @@ app.get('/getFirst', function(req, res) {
     x = "/php/liveSuggest.php?type=json&q=" + resturant + "%2C%20" + location.split(",")[0];
 
   console.log("Querying for the data " + host + x);
-  if (resturant === "K & K") {
+  if (resturant[0]=="K" && resturant[resturant.length - 1]=="K") {
     res.send("/bangalore/k-k-itc-gardenia-residency-road");
     console.log("Sending KK Fix");
   } else {
